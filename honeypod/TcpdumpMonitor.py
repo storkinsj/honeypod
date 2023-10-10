@@ -1,6 +1,34 @@
 import subprocess
 import os
+import sys
+import psutil
+from socket import AF_INET
 
+
+if "honeylog" in os.environ:
+    honeylog = os.getenv(log_env_name)
+else:
+    honeylog = '/var/log/honeypod'
+
+#
+# Get my interface; default eth0
+#
+network_interface = "eth0"
+ip_address = ""
+
+
+net_interfaces = psutil.net_if_addrs()
+
+found = False
+for interface, addresses in net_interfaces.items():
+    for address in addresses:                                            
+        if interface != "lo" and not address.address.startswith("127."): 
+            network_interface = interface                                
+            ip_address = address.address
+            found = True
+            break
+    if found:
+        break
 
 class TcpdumpMonitor:
     def __init__(self, api_key):
@@ -30,11 +58,11 @@ class TcpdumpMonitor:
                    tstamp = match[1]
                    today = match[0]
                    protocol = ""
-                   parsed_data.append(f"HONEYPOD: Suspicious network traffic: Source IP: {source_ip},  "
+                   parsed_data.append(f" Source IP: {source_ip},  "
                                f" Dest Port: {dest_port}, time: {today} {tstamp}")
                    msg = " ".join(parsed_data) 
                    print(msg)
-                   command = 'echo -{} "{}" >> {}\n'.format('e', msg, log_path)
+                   command = 'echo -{} "HONEYPOD: Suspicious network traffic:{}" >> {}\n'.format('e', msg, log_path)
                    os.system(command)
                else:
                 parsed_data = []                   
@@ -44,22 +72,6 @@ class TcpdumpMonitor:
         process.wait()
         
         return process.returncode
-
-    def send_question(self, question, path_of_log):
-        openai.api_key = self.api_key
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-
-                {"role": "user", "content": question}
-            ]
-        )
-
-        answer = response.choices[0].message.content
-        print(f"Assistant: {answer}")
-        command = 'echo "{}" >> {}'.format(answer, path_of_log)
-        os.system(command) 
-        
   
 
 # Example usage
@@ -67,10 +79,10 @@ def main():
     api_key = "<your-key>"
     monitor = TcpdumpMonitor(api_key)
     tcpdump_program_path = "/usr/bin/tcpdump"
-    log_path = "/var/log/honeypod.log"
-    interface = "eth0"
+    
+    
     tcpfilter = f"not src host 172.17.0.2"
-    monitor.monitor_tcpdump(tcpdump_program_path, interface, tcpfilter ,log_path)
+    monitor.monitor_tcpdump(tcpdump_program_path, net_interfaces, tcpfilter ,honeylog)
 
 if __name__ == '__main__':
     main()
