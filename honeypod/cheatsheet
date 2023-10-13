@@ -1,0 +1,5 @@
+export dnsServer=192.168.50.1
+export HONEYPOD_WHITELIST=www.google.com,www.microsoft.com
+export syslogServer=192.168.0.200
+export HONEYPOD_LOG="/var/log/honeypod"
+
