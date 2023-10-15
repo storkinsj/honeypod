@@ -103,6 +103,9 @@ RUN chmod +x /app/honeypod/P0fMonitor.py
 
 #USER syslognguser
 
+# More or less document what we want exposed
+EXPOSE 0:1024
+
 # Set the entry point command for the container
-#ENTRYPOINT ["/app/bootstrap.sh"]
+ENTRYPOINT ["/app/bootstrap.sh"]
 
