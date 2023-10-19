@@ -81,7 +81,7 @@ def main():
     tcpdump_program_path = "/usr/bin/tcpdump"
     
     
-    tcpfilter = f"not src host 172.17.0.2"
+    tcpfilter = f""
     monitor.monitor_tcpdump(tcpdump_program_path, net_interfaces, tcpfilter ,honeylog)
 
 if __name__ == '__main__':
