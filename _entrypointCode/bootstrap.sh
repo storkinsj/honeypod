@@ -63,8 +63,9 @@ chown unbound /var/log/honeypod
 # Start unbound
 /usr/local/sbin/unbound -d&
 
-# Start p0F monitor
-cd /app/p0f-master && /app/honeypod/P0fMonitor.py&
+# Start tcpdump monitor
+#cd /app/p0f-master && /app/honeypod/P0fMonitor.py&
+cd /app/ && /app/honeypod/TcpdumpMonitor.py&
 
 # Start syslog-ng as client
 syslog-ng -f /etc/syslog-ng.conf

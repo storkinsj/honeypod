@@ -15,7 +15,7 @@ RUN mkdir /app/tests
 
 # Copy the package files to the container
 COPY honeypod/ /app/honeypod
-COPY tests /app/tests
+#COPY tests /app/tests
 COPY setup.py /app/
 COPY _entrypointCode/* /app/
 COPY syslog-ng/ /etc/
@@ -55,6 +55,7 @@ RUN apk update && apk upgrade && apk add --no-cache \
     py3-pip \
     swig \
     syslog-ng \
+    tcpdump \
     && pip3 install --upgrade pip
 
 
@@ -100,6 +101,7 @@ RUN pip install -r /app/honeypod/requirements.txt
 
 RUN chmod +x /app/bootstrap.sh
 RUN chmod +x /app/honeypod/P0fMonitor.py
+RUN chmod +x /app/honeypod/TcpdumpMonitor.py
 
 #USER syslognguser
 
