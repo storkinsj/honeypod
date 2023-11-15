@@ -5,11 +5,20 @@ import sys
 import psutil
 from socket import AF_INET
 
+log_env_name = "HONEYPOD_LOG"
+dnsserver_env_name="dnsServer"
+syslog_env_name="syslogServer"
 
-if "honeylog" in os.environ:
+if  log_env_name in os.environ:
     honeylog = os.getenv(log_env_name)
 else:
     honeylog = '/var/log/honeypod'
+
+if dnsserver_env_name in os.environ:
+    dnsServer = os.getenv(dnsserver_env_name)
+
+if syslog_env_name in os.environ:
+    syslogServer = os.getenv(syslog_env_name)
 
 #
 # Get my interface; default eth0
@@ -35,16 +44,17 @@ class TcpdumpMonitor:
     def __init__(self, api_key):
         self.api_key = api_key
 
-    def monitor_tcpdump(self, program_path,interface, trafic_filter, log_path):
+    def monitor_tcpdump(self, program_path, interface, traffic_filter, log_path):
          
-        exec_array= [program_path, "-ni", interface, "-tttt", trafic_filter]
-        process = subprocess.Popen(exec_array, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+        exec_array= [program_path, "-ni", interface, "-tttt", traffic_filter]
+        process = subprocess.Popen(exec_array, stdout=subprocess.PIPE, 
+                                   stderr=subprocess.STDOUT, universal_newlines=True)
         msg = ""
         res = ""
         parsed_data = []
         tmp =[]
         tmp2 =[]
-        for line in  process.stdout:
+        for line in process.stdout:
             print(line.strip())
             if ('>' in line) :
                #msg = line
@@ -63,7 +73,9 @@ class TcpdumpMonitor:
                                f" Dest Port: {dest_port}, time: {today} {tstamp}")
                    msg = " ".join(parsed_data) 
                    print(msg)
-                   command = 'echo -{} "HONEYPOD: Suspicious network traffic:{}" >> {}\n'.format('e', msg, log_path)
+                   command = \
+                      'echo -{} "HONEYPOD: Suspicious network traffic:{}" >> {}\n'.format(
+                          'e', msg, log_path)
                    os.system(command)
                else:
                 parsed_data = []                   
@@ -82,8 +94,11 @@ def main():
     tcpdump_program_path = "/usr/bin/tcpdump"
     
     
-    tcpfilter = f"not src host {ip_address}" 
-    monitor.monitor_tcpdump(tcpdump_program_path, net_interfaces, tcpfilter ,honeylog)
+    tcpfilter = f"not src host {ip_address} and not src host {dnsServer}" \
+                f" and not src host {syslogServer}"
+
+    monitor.monitor_tcpdump(tcpdump_program_path, interface, 
+                            tcpfilter, honeylog)
 
 if __name__ == '__main__':
     main()

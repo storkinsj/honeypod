@@ -73,7 +73,6 @@ def check_name(name, xlist):
 
 def read_list(xlist):
      global wl_env_name
-     os.system(f'echo "wl_env_name {wl_env_name}\n"')
      white_list_spec = os.getenv(wl_env_name)
      os.system(f'echo "white_list_spec {white_list_spec}\n"')
      if white_list_spec is not None:
