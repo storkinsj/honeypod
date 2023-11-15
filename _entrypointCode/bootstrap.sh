@@ -17,9 +17,6 @@ then
     export HONEYPOD_LOG="/var/log/honeypod"
 fi
 
-
-   
-
 ## Configure Unbound ##
 
 # Add Python module
@@ -65,10 +62,10 @@ chown unbound /var/log/honeypod
 
 # Start tcpdump monitor
 #cd /app/p0f-master && /app/honeypod/P0fMonitor.py&
-cd /app/ && /app/honeypod/TcpdumpMonitor.py&
+cd /app/ && /app/honeypod/TcpdumpMonitor.py
 
 # Start syslog-ng as client
-syslog-ng -f /etc/syslog-ng.conf
+syslog-ng -f /etc/syslog-ng.conf&
 
-
-
+# Execute any arguments to this script but standalone.
+$@

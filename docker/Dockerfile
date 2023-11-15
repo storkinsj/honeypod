@@ -13,31 +13,13 @@ WORKDIR /app
 RUN mkdir /app/honeypod
 RUN mkdir /app/tests
 
-# Copy the package files to the container
-COPY honeypod/ /app/honeypod
-#COPY tests /app/tests
-COPY setup.py /app/
-COPY _entrypointCode/* /app/
-COPY syslog-ng/ /etc/
-
-# Create service principles
-RUN addgroup syslogng
-RUN adduser --ingroup syslogng -D syslognguser
-RUN addgroup unbound
-RUN adduser --ingroup unbound -D unbound
-RUN addgroup p0f
-RUN adduser --ingroup p0f -D p0f
-
 # Install dependencies
 
 # First get networking tools to discover our IP address
 # This will be used to redirect network traffic to Honeypod
 RUN apk update && apk upgrade && apk add --no-cache \
     ca-certificates \
-    build-base \
-    linux-headers \
     libc-dev \
-    openssl-dev \
     expat-dev \
     apk-tools \
     gnupg \
@@ -55,11 +37,16 @@ RUN apk update && apk upgrade && apk add --no-cache \
     py3-pip \
     swig \
     syslog-ng \
-    tcpdump \
+    tcpdump
+
+
+RUN apk --no-cache add --virtual .build-deps \
+    build-base \
+    linux-headers \
+    openssl-dev \
     && pip3 install --upgrade pip
 
 
-#RUN apk --no-cache add --virtual .build-deps \
 #    build-base \                              
 #    libc-dev \                                
 #    openssl-dev \                             
@@ -86,24 +73,33 @@ RUN rm $UNBOUND_TARBALL && rm -rf $UNBOUND_BUILD_DIR
 #
 # Compile p0f
 #
+#RUN wget https://codeload.github.com/p0f/p0f/zip/refs/heads/master -O master.zip
+#RUN unzip master.zip
+#RUN cd p0f-master && source ./build.sh && setcap cap_sys_chroot,cap_setgid,cap_net_raw=+ep /opt/p0f/p0f
+## Cleanup
+#RUN rm master.zip
 
-RUN wget https://codeload.github.com/p0f/p0f/zip/refs/heads/master -O master.zip
-RUN unzip master.zip
-RUN cd p0f-master && source ./build.sh && setcap cap_sys_chroot,cap_setgid,cap_net_raw=+ep /opt/p0f/p0f
-# Cleanup
-RUN rm master.zip
+# Create service principles
+RUN addgroup syslogng
+RUN adduser --ingroup syslogng -D syslognguser
+RUN addgroup unbound
+RUN adduser --ingroup unbound -D unbound
+RUN addgroup p0f
+RUN adduser --ingroup p0f -D p0f
 
-
-
-
-# Install all python dependencies
+# Handle Python Code and Packages
+COPY honeypod/ /app/honeypod
 RUN pip install -r /app/honeypod/requirements.txt
 
-RUN chmod +x /app/bootstrap.sh
-RUN chmod +x /app/honeypod/P0fMonitor.py
-RUN chmod +x /app/honeypod/TcpdumpMonitor.py
+# Add rest of container content
+#COPY tests /app/tests
+COPY setup.py /app/
+COPY _entrypointCode/* /app/
+COPY syslog-ng/ /etc/
 
-#USER syslognguser
+RUN chmod +x /app/bootstrap.sh
+#RUN chmod +x /app/honeypod/P0fMonitor.py
+RUN chmod +x /app/honeypod/TcpdumpMonitor.py
 
 # More or less document what we want exposed
 EXPOSE 0:1024
