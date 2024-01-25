@@ -7,6 +7,7 @@ from socket import AF_INET
 
 log_env_name = "HONEYPOD_LOG"
 dnsserver_env_name="dnsServer"
+dnsforwarder_env_name="dnsForwarder"
 syslog_env_name="syslogServer"
 
 if  log_env_name in os.environ:
@@ -16,8 +17,14 @@ else:
 
 if dnsserver_env_name in os.environ:
     dnsServer = os.getenv(dnsserver_env_name)
+else:
+    dnsServer = '1.1.1.1'
 
-if syslog_env_name in os.environ:
+if dnsforwarder_env_name in os.environ:
+    dnsServerForwarder = os.getenv(dnsserver_env_name)
+
+
+    if syslog_env_name in os.environ:
     syslogServer = os.getenv(syslog_env_name)
 
 #
@@ -93,9 +100,10 @@ def main():
     monitor = TcpdumpMonitor(api_key)
     tcpdump_program_path = "/usr/bin/tcpdump"
     
-    
-    tcpfilter = f"not src host {ip_address} and not src host {dnsServer}" \
-                f" and not src host {syslogServer}"
+    tcpfilter = f"not src host {ip_address} " \
+                f"and not src host {dnsServer} " \
+                f"and not src host {syslogServer} " \
+                f"and not src host {dnsForwarder}"
 
     monitor.monitor_tcpdump(tcpdump_program_path, interface, 
                             tcpfilter, honeylog)

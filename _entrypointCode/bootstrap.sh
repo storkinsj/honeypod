@@ -8,6 +8,10 @@ if [[ -z "$dnsServer" ]]
 then
     export dnsServer=1.1.1.1
 fi
+if [[ -z "$dnsForwarder" ]]
+then
+    export dnsForwarder=127.0.0.1
+fi
 if [[ -z "$syslogServer" ]]
 then
     export syslogServer=192.168.0.200

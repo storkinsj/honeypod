@@ -19,6 +19,7 @@ RUN mkdir /app/tests
 # This will be used to redirect network traffic to Honeypod
 RUN apk update && apk upgrade && apk add --no-cache \
     ca-certificates \
+    tzdata \
     libc-dev \
     expat-dev \
     apk-tools \
