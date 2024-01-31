@@ -24,7 +24,7 @@ if dnsforwarder_env_name in os.environ:
     dnsServerForwarder = os.getenv(dnsserver_env_name)
 
 
-    if syslog_env_name in os.environ:
+if syslog_env_name in os.environ:
     syslogServer = os.getenv(syslog_env_name)
 
 #
@@ -51,41 +51,28 @@ class TcpdumpMonitor:
     def __init__(self, api_key):
         self.api_key = api_key
 
-    def monitor_tcpdump(self, program_path, interface, traffic_filter, log_path):
+
+    def monitor_tcpdump(self, program_path,interface0, traffic_filter, log_path, awk_path):
          
-        exec_array= [program_path, "-ni", interface, "-tttt", traffic_filter]
-        process = subprocess.Popen(exec_array, stdout=subprocess.PIPE, 
-                                   stderr=subprocess.STDOUT, universal_newlines=True)
+        awk_command =  f" awk -f {awk_path} -v myip_arg={ip_address}"       
+        #exec_array= [program_path, "-ni", interface, "-tttt", traffic_filter]
+       
+        tcp_command = f"{program_path}  -ni {interface0} -tttt {traffic_filter} "
+        combined_command = f"{tcp_command} | {awk_command}"
+        
+        process = subprocess.Popen(combined_command,shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
         msg = ""
-        res = ""
         parsed_data = []
-        tmp =[]
-        tmp2 =[]
-        for line in process.stdout:
+        
+        for line in  process.stdout:
             print(line.strip())
-            if ('>' in line) :
-               #msg = line
-               match = line.split()
-               if match:
-                   tmp = match[3].split('.')
-                   tmp2= match[5].split('.')
-                   source_port = tmp.pop(4)
-                   source_ip = ".".join(tmp)
-                   dest_port = tmp2.pop(4)
-                   dest_ip = ".".join(tmp2)
-                   tstamp = match[1]
-                   today = match[0]
-                   protocol = ""
-                   parsed_data.append(f" Source IP: {source_ip},  "
-                               f" Dest Port: {dest_port}, time: {today} {tstamp}")
-                   msg = " ".join(parsed_data) 
-                   print(msg)
-                   command = \
-                      'echo -{} "HONEYPOD: Suspicious network traffic:{}" >> {}\n'.format(
-                          'e', msg, log_path)
-                   os.system(command)
-               else:
-                parsed_data = []                   
+            if ('.' in line) :
+               msg = line
+            
+               command = 'echo -{} "HONEYPOD: Suspicious network traffic:{}" >> {}\n'.format('e', msg, log_path)
+               #print(command)
+               os.system(command)
+                                  
             else:
              msg = ''
 
@@ -105,9 +92,12 @@ def main():
                 f"and not src host {syslogServer} " \
                 f"and not src host {dnsForwarder}"
 
+    #net_interfaces ="ens33"
     monitor.monitor_tcpdump(tcpdump_program_path, interface, 
-                            tcpfilter, honeylog)
+                            tcpfilter, honeylog, awk_file)
+    awk_file = "./pullIPAddresses.awk"
+        
+    monitor.monitor_tcpdump(tcpdump_program_path, net_interfaces, tcpfilter, honeylog, awk_file)
 
 if __name__ == '__main__':
     main()
-
