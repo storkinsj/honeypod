@@ -27,6 +27,7 @@ Honeypod can notice "probes" in your k8s cluster that signal intelligence gather
 4. set appropriate env settings; i.e.:
 ```bash
 export dnsServer=192.168.0.1 (an upstream dns server)
+export dnsForwarder=172.17.0.1 (an upstream dns server)
 export HONEYPOD_WHITELIST=myredisinstance,mybackendserver,myCloudserviceIP, <any connection your k8s workload must make must be in here>
 export syslogServer=<host name for your SIEM or syslog server to watch for "HONEYPOD" messages>
 export HONEYPOD_LOG="/var/log/honeypod" (Alternatively use a cloud storage mount here)

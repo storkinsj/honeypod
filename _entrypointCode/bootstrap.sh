@@ -8,6 +8,10 @@ if [[ -z "$dnsServer" ]]
 then
     export dnsServer=1.1.1.1
 fi
+if [[ -z "$dnsForwarder" ]]
+then
+    export dnsForwarder=127.0.0.1
+fi
 if [[ -z "$syslogServer" ]]
 then
     export syslogServer=192.168.0.200
@@ -16,9 +20,6 @@ if [[ -z "$HONEYPOD_LOG" ]]
 then
     export HONEYPOD_LOG="/var/log/honeypod"
 fi
-
-
-   
 
 ## Configure Unbound ##
 
@@ -65,10 +66,10 @@ chown unbound /var/log/honeypod
 
 # Start tcpdump monitor
 #cd /app/p0f-master && /app/honeypod/P0fMonitor.py&
-cd /app/ && /app/honeypod/TcpdumpMonitor.py&
+cd /app/ && /app/honeypod/TcpdumpMonitor.py
 
 # Start syslog-ng as client
-syslog-ng -f /etc/syslog-ng.conf
+syslog-ng -f /etc/syslog-ng.conf&
 
-
-
+# Execute any arguments to this script but standalone.
+$@
