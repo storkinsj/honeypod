@@ -21,7 +21,7 @@ else:
     dnsServer = '1.1.1.1'
 
 if dnsforwarder_env_name in os.environ:
-    dnsServerForwarder = os.getenv(dnsserver_env_name)
+    dnsForwarder = os.getenv(dnsserver_env_name)
 
 
 if syslog_env_name in os.environ:
@@ -93,9 +93,9 @@ def main():
                 f"and not src host {dnsForwarder}"
 
     #net_interfaces ="ens33"
+    awk_file = "/app/honeypod/pullIPAddresses.awk"
     monitor.monitor_tcpdump(tcpdump_program_path, interface, 
                             tcpfilter, honeylog, awk_file)
-    awk_file = "./pullIPAddresses.awk"
         
     monitor.monitor_tcpdump(tcpdump_program_path, net_interfaces, tcpfilter, honeylog, awk_file)
 

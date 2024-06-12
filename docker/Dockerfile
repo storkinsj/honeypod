@@ -1,12 +1,12 @@
 # Use an appropriate base image
-FROM alpine:latest
+FROM --platform=linux/arm64 alpine:latest
 
 ARG UNBOUND_VERSION=1.17.1
 ENV UNBOUND_VERSION ${UNBOUND_VERSION} 
 ENV UNBOUND_DOWNLOAD_URL "https://www.nlnetlabs.nl/downloads/unbound/unbound-"${UNBOUND_VERSION}".tar.gz"
 ENV UNBOUND_BUILD_DIR "unbound-"${UNBOUND_VERSION}
 ENV UNBOUND_TARBALL "unbound-"${UNBOUND_VERSION}.tar.gz
-    
+ENV PIP_BREAK_SYSTEM_PACKAGES 1    
 
 # Set the working directory in the container
 WORKDIR /app
@@ -17,7 +17,10 @@ RUN mkdir /app/tests
 
 # First get networking tools to discover our IP address
 # This will be used to redirect network traffic to Honeypod
-RUN apk update && apk upgrade && apk add --no-cache \
+RUN apk list
+RUN apk update 
+RUN apk upgrade 
+RUN apk add --no-cache \
     ca-certificates \
     tzdata \
     libc-dev \
@@ -41,12 +44,13 @@ RUN apk update && apk upgrade && apk add --no-cache \
     tcpdump
 
 
-RUN apk --no-cache add --virtual .build-deps \
+RUN apk --no-cache add \
+#RUN apk --no-cache add --virtual .build-deps \
     build-base \
     linux-headers \
-    openssl-dev \
-    && pip3 install --upgrade pip
-
+    openssl-dev 
+RUN  pip3 install psutil --break-system-packages 
+RUN  pip3 install openai --break-system-packages 
 
 #    build-base \                              
 #    libc-dev \                                
@@ -90,8 +94,8 @@ RUN adduser --ingroup p0f -D p0f
 
 # Handle Python Code and Packages
 COPY honeypod/ /app/honeypod
-RUN pip install -r /app/honeypod/requirements.txt
-
+#RUN pip3 install -r /app/honeypod/requirements.txt
+RUN pip3  install psutil --break-system-packages 
 # Add rest of container content
 #COPY tests /app/tests
 COPY setup.py /app/
