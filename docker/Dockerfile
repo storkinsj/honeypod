@@ -1,5 +1,5 @@
 # Use an appropriate base image
-FROM --platform=linux/arm64 alpine:latest
+FROM --platform=linux/amd64 alpine:latest
 
 ARG UNBOUND_VERSION=1.17.1
 ENV UNBOUND_VERSION ${UNBOUND_VERSION} 
