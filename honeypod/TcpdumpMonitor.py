@@ -21,7 +21,7 @@ else:
     dnsServer = '1.1.1.1'
 
 if dnsforwarder_env_name in os.environ:
-    dnsServerForwarder = os.getenv(dnsserver_env_name)
+    dnsForwarder = os.getenv(dnsserver_env_name)
 
 
 if syslog_env_name in os.environ:
