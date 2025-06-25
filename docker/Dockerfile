@@ -42,6 +42,7 @@ RUN apk add --no-cache \
     swig \
     syslog-ng \
     tcpdump
+#    && pip3 install --upgrade pip
 
 
 RUN apk --no-cache add \
@@ -49,8 +50,6 @@ RUN apk --no-cache add \
     build-base \
     linux-headers \
     openssl-dev 
-RUN  pip3 install psutil --break-system-packages 
-RUN  pip3 install openai --break-system-packages 
 
 #    build-base \                              
 #    libc-dev \                                
@@ -89,14 +88,17 @@ RUN addgroup syslogng
 RUN adduser --ingroup syslogng -D syslognguser
 RUN addgroup unbound
 RUN adduser --ingroup unbound -D unbound
-RUN addgroup p0f
-RUN adduser --ingroup p0f -D p0f
+#RUN addgroup p0f
+#RUN adduser --ingroup p0f -D p0f
 
 # Handle Python Code and Packages
 COPY honeypod/ /app/honeypod
-#RUN pip3 install -r /app/honeypod/requirements.txt
-RUN pip3  install psutil --break-system-packages 
+
+RUN pip3 install \
+   ${PIP_BREAK_SYSTEM_PACKAGES:+--break-system-packages} \
+   -r /app/honeypod/requirements.txt
 # Add rest of container content
+
 #COPY tests /app/tests
 COPY setup.py /app/
 COPY _entrypointCode/* /app/
