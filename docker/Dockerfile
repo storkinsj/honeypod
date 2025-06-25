@@ -50,8 +50,6 @@ RUN apk --no-cache add \
     build-base \
     linux-headers \
     openssl-dev 
-RUN  pip3 install psutil --break-system-packages 
-RUN  pip3 install openai --break-system-packages 
 
 #    build-base \                              
 #    libc-dev \                                
@@ -94,11 +92,13 @@ RUN adduser --ingroup unbound -D unbound
 #RUN adduser --ingroup p0f -D p0f
 
 # Handle Python Code and Packages
-RUN pip3 install -r /app/honeypod/requirements.txt \
-   ${PIP_BREAK_SYSTEM_PACKAGES:+--break-system-packages}
+COPY honeypod/ /app/honeypod
+
+RUN pip3 install \
+   ${PIP_BREAK_SYSTEM_PACKAGES:+--break-system-packages} \
+   -r /app/honeypod/requirements.txt
 # Add rest of container content
 
-COPY honeypod/ /app/honeypod
 #COPY tests /app/tests
 COPY setup.py /app/
 COPY _entrypointCode/* /app/
