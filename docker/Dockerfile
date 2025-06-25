@@ -23,43 +23,35 @@ RUN apk upgrade
 RUN apk add --no-cache \
     ca-certificates \
     tzdata \
-    libc-dev \
-    expat-dev \
-    apk-tools \
     gnupg \
     curl \
     file \
-    zip \
     binutils \
     jansson \
-    jansson-dev \
     libcap \
     libpcap \
-    libpcap-dev \
     python3-dev \
     python3 \
     py3-pip \
     swig \
     syslog-ng \
-    tcpdump
-#    && pip3 install --upgrade pip
+    tcpdump \
+    openssl \
+    && pip3 install --upgrade pip
 
 
-RUN apk --no-cache add \
-#RUN apk --no-cache add --virtual .build-deps \
+RUN apk --no-cache add --virtual .build-deps \
     build-base \
     linux-headers \
-    openssl-dev 
-
-#    build-base \                              
-#    libc-dev \                                
-#    openssl-dev \                             
-#    expat-dev \                               
-#    apk-tools \
-#    jansson-dev \                               
-#    libpcap-dev \     
-#    zip                           
-
+    openssl-dev \
+    libc-dev \
+    expat-dev \
+    jansson-dev \
+    apk-tools \
+    wget \
+    zip \
+    libpcap-dev \
+    tar
 
 # Compile Unbound
 #    We install unbound package to get alpine service created correctly. 
@@ -68,11 +60,20 @@ RUN apk --no-cache add \
 
 RUN wget $UNBOUND_DOWNLOAD_URL
 RUN tar -zxvf $UNBOUND_TARBALL
-RUN cd $UNBOUND_BUILD_DIR && ./configure --with-pythonmodule && make && make install
+RUN cd $UNBOUND_BUILD_DIR && \
+./configure --with-pythonmodule && \
+make && \
+make install
+
+# Handle Python Code and Packages
+COPY honeypod/ /app/honeypod
+
+RUN pip3 install \
+   ${PIP_BREAK_SYSTEM_PACKAGES:+--break-system-packages} \
+   -r /app/honeypod/requirements.txt
 
 # Cleanup
-# RUN rm -rf unbound* && apk del .build-deps
-RUN rm $UNBOUND_TARBALL && rm -rf $UNBOUND_BUILD_DIR
+RUN rm $UNBOUND_TARBALL && rm -rf $UNBOUND_BUILD_DIR && apk del .build-deps
 
 #
 # Compile p0f
@@ -90,14 +91,6 @@ RUN addgroup unbound
 RUN adduser --ingroup unbound -D unbound
 #RUN addgroup p0f
 #RUN adduser --ingroup p0f -D p0f
-
-# Handle Python Code and Packages
-COPY honeypod/ /app/honeypod
-
-RUN pip3 install \
-   ${PIP_BREAK_SYSTEM_PACKAGES:+--break-system-packages} \
-   -r /app/honeypod/requirements.txt
-# Add rest of container content
 
 #COPY tests /app/tests
 COPY setup.py /app/
